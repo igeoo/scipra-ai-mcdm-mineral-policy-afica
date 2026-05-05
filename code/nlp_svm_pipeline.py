@@ -39,7 +39,11 @@ def train_svm(X, y):
         probability=True,
         random_state=RANDOM_STATE,
     )
-    cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=RANDOM_STATE)
+    # Dynamic split count to handle toy/small corpora
+    min_class_size = np.min(np.bincount(y))
+    n_splits = min(5, min_class_size) if min_class_size > 1 else 2
+    
+    cv = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=RANDOM_STATE)
     metrics = cross_validate(
         model,
         X,
