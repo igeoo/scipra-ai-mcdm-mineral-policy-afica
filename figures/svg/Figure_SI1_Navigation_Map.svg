@@ -1,0 +1,32 @@
+<svg width="1000" height="420" xmlns="http://www.w3.org/2000/svg">
+
+<defs>
+  <marker id="arrow" markerWidth="10" markerHeight="10" refX="10" refY="3" orient="auto">
+    <path d="M0,0 L10,3 L0,6 Z" fill="#333"/>
+  </marker>
+  <style>
+    .title { font-family: Arial, Helvetica, sans-serif; font-size: 18px; font-weight: bold; }
+    .label { font-family: Arial, Helvetica, sans-serif; font-size: 13px; fill: #111; }
+    .small { font-family: Arial, Helvetica, sans-serif; font-size: 11px; fill: #333; }
+  </style>
+</defs>
+
+<text x="40" y="40" class="title">Supplementary Material Structure (SCIPRA)</text>
+
+<rect x="60" y="120" width="250" height="120" rx="10" fill="#4C78A8"/>
+<text x="90" y="165" fill="white" class="label">Appendix A</text>
+<text x="90" y="185" fill="white" class="small">Mathematical Foundations</text>
+
+<rect x="380" y="120" width="250" height="120" rx="10" fill="#F58518"/>
+<text x="410" y="165" fill="white" class="label">Appendix B</text>
+<text x="410" y="185" fill="white" class="small">NLP–SVM Pipeline</text>
+
+<rect x="700" y="120" width="250" height="120" rx="10" fill="#54A24B"/>
+<text x="730" y="165" fill="white" class="label">Appendix C</text>
+<text x="730" y="185" fill="white" class="small">P–L–U Derivation</text>
+
+<line x1="310" y1="180" x2="380" y2="180" stroke="#333" stroke-width="2" marker-end="url(#arrow)"/>
+<line x1="630" y1="180" x2="700" y2="180" stroke="#333" stroke-width="2" marker-end="url(#arrow)"/>
+
+<text x="350" y="300" class="small">Integrated SCIPRA Framework</text>
+</svg>

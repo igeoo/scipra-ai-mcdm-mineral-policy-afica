@@ -1,0 +1,33 @@
+<svg width="1100" height="360" xmlns="http://www.w3.org/2000/svg">
+
+<defs>
+  <marker id="arrow" markerWidth="10" markerHeight="10" refX="10" refY="3" orient="auto">
+    <path d="M0,0 L10,3 L0,6 Z" fill="#333"/>
+  </marker>
+  <style>
+    .title { font-family: Arial, Helvetica, sans-serif; font-size: 18px; font-weight: bold; }
+    .label { font-family: Arial, Helvetica, sans-serif; font-size: 13px; fill: #111; }
+    .small { font-family: Arial, Helvetica, sans-serif; font-size: 11px; fill: #333; }
+  </style>
+</defs>
+
+<text x="40" y="40" class="title">Stakeholder Salience Scoring Workflow (P–L–U)</text>
+
+<rect x="60" y="140" width="200" height="80" rx="8" fill="#4C78A8"/>
+<text x="80" y="180" fill="white" class="label">Data Inputs</text>
+<text x="80" y="200" fill="white" class="small">WGI · Documents</text>
+
+<rect x="300" y="140" width="180" height="80" rx="8" fill="#F58518"/>
+<text x="320" y="180" fill="white" class="label">P, L, U Extraction</text>
+
+<rect x="540" y="140" width="180" height="80" rx="8" fill="#54A24B"/>
+<text x="560" y="180" fill="white" class="label">Aggregation</text>
+
+<rect x="780" y="140" width="200" height="80" rx="8" fill="#E45756"/>
+<text x="800" y="180" fill="white" class="label">SIC Computation</text>
+
+<line x1="260" y1="180" x2="300" y2="180" stroke="#333" stroke-width="2" marker-end="url(#arrow)"/>
+<line x1="480" y1="180" x2="540" y2="180" stroke="#333" stroke-width="2" marker-end="url(#arrow)"/>
+<line x1="720" y1="180" x2="780" y2="180" stroke="#333" stroke-width="2" marker-end="url(#arrow)"/>
+
+</svg>

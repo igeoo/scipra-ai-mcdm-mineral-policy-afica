@@ -1,0 +1,23 @@
+cff-version: 1.2.0
+message: "If you use this repository, please cite the associated manuscript and archived repository DOI."
+title: "SCIPRA: Stakeholder-Centric Investment–Regulatory Policy Architecture"
+authors:
+  - family-names: "Ige"
+    given-names: "Oladeji O."
+  - family-names: "Mora-Camino"
+    given-names: "Felix"
+  - family-names: "Olanrewaju"
+    given-names: "Oludolapo A."
+year: 2026
+version: "1.0.0"
+doi: "10.5281/zenodo.UPDATE_AFTER_ARCHIVING"
+repository-code: "https://github.com/USERNAME/SCIPRA"
+abstract: "Reproducibility package for an AI-enhanced MCDM framework for mineral resource policy convergence in Africa."
+keywords:
+  - stakeholder salience
+  - policy convergence index
+  - fuzzy AHP
+  - natural language processing
+  - support vector machine
+  - mineral governance
+license: "MIT"
