@@ -12,20 +12,21 @@ POWER_TERMS = {
     "authority", "enforcement", "mandate", "jurisdiction", "regulation",
     "capital", "investment withdrawal", "shareholding", "strike",
     "collective bargaining", "shutdown", "legal standing", "litigation",
-    "injunction", "veto", "ownership",
+    "injunction", "veto", "ownership", "enforcement power", "capital control",
 }
 
 LEGITIMACY_TERMS = {
     "rights", "consent", "fpic", "constitutional", "legitimacy",
     "recognition", "entitlement", "displacement", "customary", "treaty",
     "accountability", "transparency", "compliance", "environmental impact",
-    "community development", "social licence",
+    "community development", "social licence", "public trust", "collective bargaining rights",
 }
 
 URGENCY_TERMS = {
     "urgency", "crisis", "strike", "displacement", "deadline", "eviction",
     "massacre", "protest", "emergency", "immediate", "overdue",
     "escalation", "moratorium", "injustice", "water contamination", "dust",
+    "health impacts", "living-wage crisis", "post-massacre trauma",
 }
 
 

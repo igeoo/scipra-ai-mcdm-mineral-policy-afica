@@ -48,23 +48,47 @@ pip install -r requirements.txt
 
 2. Prepare the public-source corpus using the access pathway described in `docs/DATA_ACCESS.md`.
 
-3. Run the NLP–SVM pipeline:
+3. Run the full end-to-end analysis (NLP-SVM + PCI/RPCI):
 
 ```bash
-python code/nlp_svm_pipeline.py
+python code/execute_full_analysis.py
 ```
 
-4. Compute PCI and RPCI values:
+4. Generate the canonical manuscript table values:
+
+```bash
+python code/generate_tables.py
+```
+
+This produces the authoritative numbers for Tables 5 and 7. The manuscript reports these values.
+
+5. Inspect the mathematical core in isolation (no corpus required):
 
 ```bash
 python code/pci_computation.py
 ```
 
-5. Reproduce stakeholder salience scores:
+6. Reproduce stakeholder salience scores (PLU) independently:
 
 ```bash
 python code/plu_scoring.py
 ```
+
+---
+
+## Mathematical design notes
+
+### Non-Linear PCI (Section 4.5)
+The harmonic mean in `pci_nonlinear()` uses the **weighted** harmonic mean:
+`HM_w = 1 / sum(w_i / x_i)`, where `w_i` are the domain weights (0.30, 0.35, 0.35).
+This is consistent with the rest of the SCIPRA framework's weighted-combination structure.
+
+### RPCI normalization (SI Appendix A, Eq. A.10)
+The code produces two RPCI values:
+- `RPCI_raw` = `max(0, PCI − λσ)` — cited in the manuscript Section 3.3 Remark for expositional clarity.
+- `RPCI_norm` = `RPCI_raw / (1 + λ/2)` — the **authoritative** form per SI Eq. A.10; reported in Table 7.
+
+The difference is ≈ 4.8% for λ = 0.10 (the Marikana calibration).
 
 ---
 
