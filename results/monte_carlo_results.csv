@@ -1,0 +1,4 @@
+scenario,n_simulations,base_I,base_R,base_S,noise_std,PCI_mean,PCI_std,PCI_p5,PCI_p95,RPCI_mean,RPCI_std,P_PCI_ge_0.70,P_RPCI_ge_0.70
+A: Pre-Intervention,10000,0.82,0.48,0.12,0.05,0.456,0.0293,0.4075,0.5045,0.4073,0.0281,0.0,0.0
+B: Post-Charter III,10000,0.7,0.75,0.55,0.05,0.665,0.029,0.6179,0.7121,0.6246,0.0278,0.1158,0.0028
+C: SCIPRA-Optimised,10000,0.75,0.8,0.79,0.05,0.7817,0.0288,0.7348,0.8296,0.7406,0.0274,0.9974,0.9322

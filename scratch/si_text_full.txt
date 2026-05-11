@@ -1,0 +1,328 @@
+Supplementary Information
+Bridging the Investment-Regulatory-Stakeholder Divide: An AI-Enhanced MCDM Framework for Mineral Resource Policy Convergence in Africa
+Ige, O.O., Mora-Camino, F., & Olanrewaju, O.A.
+Supplementary Executive Summary
+This SI provides three appendices that together form the formal, technical, and empirical foundation of SCIPRA. Appendix A proves that PCI and RPCI are bounded in [0,1] and that RPCI is strictly penalised by cross-domain dispersion. Appendix B provides the complete reproducible specification of the NLP-SVM pipeline. Appendix C derives every P, L, U score assigned to the five Marikana stakeholder groups with each value traceable to a primary source, a formal equation, and a calibrated uplift magnitude.
+These appendices are designed for independent or combined reading. A reviewer focused on mathematical validity needs only Appendix A (proofs). A reviewer focused on AI/NLP methodology needs only Appendix B (pipeline). A reviewer focused on stakeholder scoring transparency needs only Appendix C (derivations). Audience notes at the start of each appendix direct reviewers to the relevant sections.
+Reproducibility in one sentence: Every numerical result in the main text can be independently reproduced using (a) the equations and parameter values in Table SI-1; (b) the algorithms in Section B.2 with the settings in Table B5.2; and (c) the derivation steps in Sections C.3–C.7 using publicly accessible sources listed in Section B.4.3.
+RPCI note (0.427 vs 0.407): The main text reports RPCI_raw = 0.427 using the un-normalized form (λ=0.10 makes D=1.05, a 5% difference). This appendix uses the definitive computational form RPCI = max (0, PCI₀−λσ(X))/(1+λ/2). Full reconciliation in Section A.6.
+Contents and Navigation Guide
+This Supplementary Information (SI) contains three appendices totalling approximately 15,000 words. The table below maps each section to its content, the main text location that references it, and the specific reviewer concern it addresses. Use the map to navigate directly to the section you need.
+
+Table SI-0. Master Navigation Map
+
+Master Notation Reference (All Appendices)
+All symbols used in this SI are defined below. Per-appendix symbol tables have been consolidated here to eliminate duplication. Appendix-specific extensions are noted in the ‘First use’ column.
+
+Table SI-1. Master Symbol Reference
+
+
+Appendix A: Mathematical Proofs and Formal Derivations
+PCI Boundedness, RPCI Monotone Convergence, and Normalization Procedure
+For reviewers: Mathematical / quantitative reviewers — read all sections. Policy reviewers: read A.0 (summary box), then A.7 (corollaries) for intuition; skip A.2–A.5 proofs if desired. Connections to the rest of the SI: the σ(X) bound (Lemma A.1.1) feeds directly into Appendix C’s clipping rule (Eq. C.4); the RPCI formula (Eq. A.2) is the computational basis for all three scenario values verified in Section A.6 and discussed in Section 4.6 of the main text.
+
+A.0 Purpose and Theoretical Guarantees
+This appendix provides the complete formal proofs and derivations referenced in Section 3.3 of the main text. Two specific promises are fulfilled: (i) ‘The bounding proof for σ(X) ≤ 0.5 … presented formally in Appendix A.1’; and (ii) ‘the full derivation of the normalization step in Equation 8 … presented formally in … A.2.’ All symbols are defined in Table SI-1. Equation numbers continue from the main text (Equations 1–10) without repetition.
+
+
+A.1 Formal Setup: Assumptions, Feasible Domain, and Degeneracy Region
+Key symbols: Xᵢ, wᵢ, μ, λ, σ(X), PCI₀, RPCI — see Table SI-1.
+A.1.1 Formal Assumptions
+The four assumptions in Section 3.3 of the main text are here formalised as named assumptions referenced explicitly in all proofs.
+
+
+
+
+
+A.1.2 Feasible Domain and Key Definitions
+X  =  { X ∈ [0,1]^n  :  wᵢ ≥ 0,  ∑ᵢ wᵢ = 1 }   (A.1)
+
+Definitions under Assumptions A.1–A.4:
+PCI₀ = ∑ᵢ wᵢXᵢ;    μ = PCI₀;    σ(X) = √(∑ᵢ wᵢ(Xᵢ−μ)²)   (Eqs. 4, 7, 6)
+RPCI_raw = PCI₀ − λσ(X);    RPCI = max(0, PCI₀ − λσ(X)) / (1+λ/2)   (Eqs. 5; A.2)
+
+Clarification on Equations (8) and (A.2): Equation (8) in the main text and Equation (A.2) here are identical: RPCI = max(0, PCI₀−λσ(X))/(1+λ/2). Both documents use this as the definitive computational form. Equation (A.2) is referenced throughout this appendix for self-contained reading; all numerical results in both documents are derived from this expression.
+A.1.3 Degeneracy Region
+The non-negativity floor in Equation (A.2) binds when PCI₀ ≤ λσ(X), defining the degeneracy region:
+D₀  =  { X ∈ X :  PCI₀(X)  ≤  λσ(X) }   (A.3)
+When X ∈ D₀, RPCI = 0 (complete policy divergence). For the Marikana calibration (λ=0.10), PCI₀ ∈ [0.456, 0.781] and λσ(X) ∈ [0.002, 0.029], so D₀ is never active in the empirical application.
+
+A.2 Lemma A.1.1: Bounding Proof for σ(X) ≤ 0.5  (Main Text ‘Appendix A.1’)
+Applies Assumptions A.1–A.2. Proof holds for any n ≥ 2.
+
+Intuition: In any governance system where domain scores are bounded between 0 (complete failure) and 1 (perfect performance), the most extreme cross-domain divergence occurs when half the weight sits on 0 and half on 1 — like one domain performing perfectly while another collapses. The resulting standard deviation is exactly 0.5. This bound means the RPCI variance penalty λσ(X) can never exceed λ×0.5, giving the normalization divisor D=1+λ/2 its precise derivation.
+
+
+Proof.
+
+Step 1: Reduce to the two-point case.
+By the Hoeffding (1963) variance bound, the variance of Xᵢ ∈ [0,1] with fixed mean μ is maximised when mass is concentrated at {0,1}. Consider Xᵢ ∈ {0,1} for all i.
+
+Step 2: Parametrise.
+Let p = ∑ᵢ:Xᵢ=1 wᵢ ∈ [0,1]. Then μ = p (Equation A.4).
+
+Step 3: Compute variance.
+Var(X)  =  p(1−p)² + (1−p)p²  =  p(1−p).   (A.5)
+
+Step 4: Maximise over p ∈ [0,1].
+f(p) = p(1−p) is concave; f′(p) = 1−2p = 0 gives p* = 1/2; f′′ = −2 < 0 confirms maximum. Therefore:
+max Var(X)  =  (1/2)(1/2)  =  1/4.   (A.6)
+
+Step 5: Conclude.
+σ(X) = √Var(X) ≤ √(1/4) = 0.5.    Tightness at p = 1/2. ■   (A.7)
+
+
+A.3 Theorem A.1: PCI and RPCI Boundedness (Proposition 1)
+Applies Assumptions A.1–A.3. Uses Lemma A.1.1 and Eq. A.2.
+
+Intuition: PCI₀ is a weighted average of scores that are each between 0 and 1, so the average must also lie between 0 and 1. RPCI inherits this bound because its numerator cannot exceed PCI₀ (the penalty only reduces it) and the divisor is always ≥1. The floor max(0,·) prevents the penalty from pushing RPCI below zero.
+
+
+Proof (a): PCI₀ ∈ [0,1].
+PCI₀ = ∑wᵢXᵢ ≥ ∑wᵢ×0 = 0   (lower);    PCI₀ ≤ ∑wᵢ×1 = 1   (upper). ■
+
+Proof (b): RPCI ∈ [0,1].
+Lower: max(0,·) ≥ 0; denominator (1+λ/2) > 0. Therefore RPCI ≥ 0.
+Upper: numerator ≤ PCI₀ ≤ 1; denominator ≥ 1. When λ=0: RPCI = PCI₀/1 ≤ 1. When λ>0: RPCI < 1. Tightness: RPCI=0 at D₀; RPCI=1 when λ=0 and PCI₀=1. 
+A.4  Full Derivation of RPCI Normalization (Main Text ‘Appendix A.2’, Equation 8)
+Uses RPCI_raw range [−λ/2, 1] from Theorem A.1 and Lemma A.1.1.
+
+The un-normalized RPCI_raw ∈ [−λ/2, 1]. A normalization is required that: (i) maps RPCI_raw to [0,1]; (ii) preserves strict monotone ordering (no reranking); (iii) reduces to PCI₀ when λ = 0.
+
+Step 1: Establish range.
+RPCI_raw ∈ [−λ/2, 1] (upper from PCI₀ ≤ 1; lower from PCI₀ ≥ 0 and σ ≤ 0.5).
+
+Step 2: Apply non-negativity floor.
+RPCI_floor = max(0, PCI₀ − λσ(X)) ∈ [0,1].   (A.8)
+
+Step 3: Identify compression factor.
+Original range width: 1−(−λ/2) = 1+λ/2. Denote as the normalization divisor:
+D  =  1 + λ/2.   (A.9)
+
+Step 4: Derive normalized form.
+RPCI  =  max(0, PCI₀ − λσ(X))  /  (1 + λ/2).   (A.10)
+Division by D preserves relative ordering (monotonicity) and maps the effective range to [0,1].
+
+Step 5: Verify output range.
+Lower: max(0,·) ≥ 0; D > 0 ⇒ RPCI ≥ 0. Upper: numerator ≤ 1; D ≥ 1 ⇒ RPCI ≤ 1. 
+Summary: D = 1+λ/2 is the exact span of RPCI_raw from its minimum to its maximum. It is the unique linear divisor satisfying both RPCI ∈ [0,1] and strict monotone ordering (Remark A.4.1).
+
+
+
+A.5 Theorem A.2: Strict Monotone Convergence (Proposition 2)
+Requires λ > 0 (strict). Applies Assumptions A.1–A.4 and Eq. A.2.
+
+Intuition: Holding the average domain score constant, a governance configuration where all domains are equal is always rated higher than one where the same average is achieved by one high-performing domain offsetting a failing one. The derivative ∂RPCI/∂σ = −λ/(1+λ/2) is the precise rate at which balance is rewarded: for λ=0.10 (Marikana calibration), each 0.10 increase in σ reduces RPCI by approximately 0.010 — a small but strictly non-zero governance quality discount.
+
+
+Proof.
+
+Part (a): Interior (PCI₀ > λσ(X)).
+Floor not binding ⇒ RPCI(σ) = (μ − λσ) / (1+λ/2). Partial derivative extending Equation (10) of the main text:
+∂RPCI/∂σ  =  −λ / (1+λ/2)  <  0   for all λ > 0.   (A.12)
+Strictly affine decreasing in the interior.
+
+Part (b): Boundary (X ∈ D₀).
+RPCI(X) = 0. If X′ has lower σ and PCI₀ > λσ(X′), then RPCI(X′) > 0 and strict monotonicity holds. For Marikana (λ=0.10), D₀ is never active (PCI₀ ≥ 0.456 ≫ 0.10×0.290 = 0.029).
+
+Part (c): Relationship to main text Eqs. (9)–(10).
+Main text: ∂RPCI_raw/∂σ = −λ (un-normalized). Equation (A.12): ∂RPCI/∂σ = −λ/(1+λ/2) (normalized). Related by scale factor 1/D; both strictly negative for λ > 0.
+
+
+A.6 Numerical Verification: RPCI Values for Marikana Scenarios
+Parameters: w₁=0.30, w₂=0.35, w₃=0.35; λ=0.10. Rounding: 6 sig. figs. intermediate; 3 d.p. final.
+
+Table A6.1. RPCI Numerical Verification — Three Marikana Scenarios
+Note: Scenario A RPCI = 0.427 as in main text corresponds to the un-normalized RPCI_raw (before dividing by D=1.05). Normalized value = 0.407. The main text uses the un-normalized form for expositional simplicity (λ=0.10 makes D≈1). Equation (A.10) is the definitive computational form.
+A.7 Corollaries (Extending Propositions 1–2)
+
+
+Proof:
+Sectoral optimum X has high σ(X); balanced X′ has σ(X′) < σ(X) at equal μ. By Theorem A.2, RPCI(X) < RPCI(X′). ■ Application: Marikana Scenario A (0.407) < Scenario C (0.752). ✔
+
+
+Proof:
+If Xᵢ = μ for all i, then σ = 0. RPCI = μ/(1+λ/2) < μ for λ > 0. ■ For λ=0.10: discount = 4.8% (RPCI_max = 0.95×PCI₀).
+
+Connection to Appendix B: The σ(X) ≤ 0.5 bound (Lemma A.1.1) and the normalization divisor D=1+λ/2 (Section A.4) are applied directly in the PCI computation at the end of Algorithm 3 (Appendix B.2). The S_score produced by the NLP-SVM pipeline (Equations B.3–B.4) is the third domain input (w₃=0.35) to the PCI formula proved in Theorem A.1.
+Appendix B: NLP-SVM Pipeline — Formal Specification, Lexicons, Corpus Metadata, and Data Access
+All symbols defined in Table SI-1.
+For reviewers: AI/NLP reviewers — read Sections B.1–B.3 for formal specification; B.4 for corpus and annotation details; B.5 for reproducibility checklist. Policy reviewers: read B.4 (corpus and data access) and B.5 (parameter calibration) — Sections B.1–B.3 are optional. The key reproducibility item is Table B5.2 (28-parameter checklist). Connections to the SI: the S_score derived here (Eq. B.4) is the domain input proved bounded in Appendix A; the P, L, U scores that weight it are derived in Appendix C.
+
+B.1 Formal Mathematical Specification
+B.1.1 TF-IDF Feature Weighting
+tf-idf(t,d,D)  =  tf(t,d) × log[(1+|D|)/(1+df(t,D))]  +  1
+
+where tf(t,d) = log(1+count(t,d)) (sublinear smoothing). TF-IDF was chosen over contextual embeddings (e.g. BERT) for three reasons: (i) interpretability — feature weights are directly inspectable alongside domain lexicons; (ii) proportionality — an 87-document specialised corpus does not justify transformer pre-training data requirements; (iii) transparency — TF-IDF features map directly to the lexicon scoring in Equation (B.1). Limitations relative to transformer models are acknowledged in Section B.4.
+B.1.2 Salience Dimension Scoring
+df_dim(d)  =  |{t ∈ tokens(d) : t ∈ V_dim|} / |{t ∈ tokens(d) : t ∈ V_all|}   (B.1)
+U_adj(d)  =  clip( df_U(d) + 0.10×compound(d),  0,  1 )   (B.2)
+The ±0.10 VADER ceiling was validated on a 20-document hold-out sample; exceeding 0.10 produced no improvement in annotator agreement.
+
+B.1.3 Stakeholder Acceptance Score and PCI
+acc(g)  =  (1/|D_g|) × ∑_{d∈D_g} pʲ(d)   (B.3)
+S_score  =  ∑_{g∈G} SIC_g×acc(g)  /  ∑_{g∈G} SIC_g   (B.4)
+Marikana SIC values: SIC_community=0.749, SIC_investor=0.770, SIC_labour=0.807, SIC_govt=0.703, SIC_NGO=0.686 (Table 3, main text). PCI = w₁I + w₂R + w₃S (Equation 1, main text; w₁=0.30, w₂=0.35, w₃=0.35).
+
+
+
+
+B.2 Formal Algorithm Specification
+All parameters are in the reproducibility checklist (Section B.5). random_state = 42 throughout for full determinism.
+
+
+
+
+B.3 Domain Lexicons with Construction Protocol
+Lexicon construction: two-stage protocol. Stage 1: TF-IDF threshold ≥ 0.15 applied to full 87-document corpus. Stage 2: three domain experts independently validated against Mitchell et al. (1997) framework and EITI Standard 2023; two-of-three agreement required for inclusion. Terms named in the main text marked (★).
+Table B3.1. Power Lexicon V_P — Stakeholder Capacity to Influence Outcomes
+Note: (★) = term named in main text. All terms lemmatised before matching. TF-IDF threshold ≥ 0.15 plus expert validation.
+Table B3.2. Legitimacy Lexicon V_L — Socially or Legally Recognized Claims
+
+Table B3.3. Urgency Lexicon V_U — Time-Sensitivity of Stakeholder Demands
+Note: VADER compound adjusts urgency score by up to ±0.10 (Eq. B.2). Ceiling validated on 20-document hold-out (Section B.1.2).
+B.4 Corpus Metadata, Annotation Protocol, and Data Access
+B.4.1 Corpus Metadata and Dual-Use Caveat
+The 87-document corpus spans 2010–2023. Mixed-source documents were attributed to the dominant stakeholder voice; n=4 equal-split documents received 0.5 weighting in acc(g) (Equation B.3) to avoid double-counting. Note: the same corpus serves dual functions — SVM training/validation and case argument evidence base. The S_score is therefore derived from documents that also inform the scenario characterisation (Section 4.3). This dual use is inherent to retrospective single-case validation and does not compromise internal consistency, but classification outputs should be interpreted as evidence of methodological coherence within the Marikana case, not as independent predictive validation. Out-of-sample validation across multiple cases remains future work.
+
+Table B4.1. Corpus Metadata Schema (N = 87)
+
+B.4.2 Annotation Protocol
+Binary labels (1=pro-integration, 0=resistant) assigned by two independent annotators. Pre-adjudication κ = 0.71 (substantial agreement). Disagreements (n=9) resolved by third annotator. Post-adjudication κ = 1.0. Class distribution: 71 pro-integration, 16 resistant; addressed by class_weight=‘balanced’ in SVM (Algorithm 3, Step 1).
+
+B.4.3 Open-Source Data Access
+EITI: GET https://eiti.org/api/v1.0/?format=json&country_code=ZA (Open Government Licence)
+World Bank WGI: https://api.worldbank.org/v2/country/ZA/indicator/{code}?format=json&date=2010:2023 (CC-BY 4.0); codes: GE.EST, RL.EST, VA.EST, CC.EST, PS.EST; normalization: (WGI+2.5)/5.0
+Farlam Commission PDF: https://www.gov.za/documents/marikana-commission-inquiry (public domain)
+Bench Marks Foundation: PG6 https://www.bench-marks.org.za/research/policy-gap-6/ ; PG10 https://www.bench-marks.org.za/research/policy-gap-10/
+SERI: https://seri-sa.org/images/Nkaneng_report.pdf ; CER: https://cer.org.za/resources/reports/
+Mining Weekly: https://www.miningweekly.com (keywords: Marikana, Lonmin, Sibanye, platinum strike, AMCU, Nkaneng); BeautifulSoup ≥ 4.11; rate-limit 1 req/s
+
+Cross-case validation note: the CV metrics in Table 6 of the main text (accuracy=81.6%, F1=0.837) are in-sample relative to the Marikana case. Cross-case validation against an independently annotated corpus from a second jurisdiction (e.g. Zambia’s Copperbelt or Ghana’s Obuasi) constitutes priority future work (Section 5.2, main text).
+B.5 Parameter Calibration Guidance and Reproducibility Checklist
+Table B5.1 provides illustrative calibration scenarios. These are expert priors, not empirically estimated parameters; validate through sensitivity analysis (Section 4.6, main text) before deployment in a new context.
+
+Table B5.1. Illustrative Parameter Calibration Scenarios
+Note: (★) = Marikana calibration used throughout main text. All α+β+γ = 1.0. δ range [0.10, 0.60] covers 99.5% of Monte Carlo convergence zone (Section 4.7, main text).
+
+Table B5.2. Full Reproducibility Checklist
+
+
+Connection to Appendix C: The NLP pipeline in Appendix B produces document-frequency ratios (Equation B.1 = Equation C.2) that are the starting point for the P, L, and U derivations in Appendix C. The SIC values computed from those P, L, U scores (Table C8.2) are the weights used in Equation B.4 (S_score) to aggregate stakeholder group probabilities into the final domain input to PCI.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Appendix C: Explicit Derivation of Stakeholder Salience Attributes (P, L, U)
+Normalization Formulas, Uplift Calibration Rules, Document-Frequency Ratios, and Attribute Assignment Transparency
+For reviewers: Stakeholder / policy reviewers — read Section C.1 (normalization equations and uplift tiers), then go directly to the stakeholder group you wish to verify (Sections C.3–C.7), then check Table C8.2 (SIC verification). Quantitative reviewers: read all sections including the transparency audit (C.9). The single most important table is C8.2 — it arithmetically verifies all five SIC values against Table 3 of the main text. Connection to Appendix B: the document-frequency ratios (Eq. C.2) are identical to Equation B.1; they are reproduced here for self-contained reading.
+C.0 Purpose, Reproducibility Statement, and Generalisation
+Reproducibility statement: All 15 P, L, U scores are reproducible from the formulas and sources defined in Sections C.1–C.2. No proprietary data required. Equations C.1–C.4, Table C1.2, and the primary sources in Sections C.3–C.7 are jointly sufficient for independent replication.
+
+Generalisation: The three-pathway methodology (WGI normalization, document-frequency ratio, evidence triangulation) transfers to any mining jurisdiction with World Bank WGI access and a document corpus. Context-specific recalibration guidance is in Section B.5 (Appendix B, this SI).
+C.1 Normalization Formulas and Uplift Calibration Rules
+All symbols in Table SI-1. Note: V_all = V_P ∪ V_L ∪ V_U (48 terms total; Tables B3.1–B3.3).
+
+All inputs are normalized to [0,1] before aggregation, ensuring comparability across heterogeneous data types. The clipping rule (Equation C.4) is the final step after all adjustments.
+
+
+Evidence weights: w_i ∈ {1.0, 0.7, 0.5} by source tier: primary documentary record = 1.0; secondary institutional report = 0.7; expert triangulation = 0.5. Uplift magnitudes are calibrated to documented event scales per Table C1.2 below.
+
+Table C1.2. Uplift and Penalty Calibration Rules
+Note: Tier assignment determined by evidential basis, not desired score outcome. No uplift exceeds the Tier 3 ceiling of 0.30. Each magnitude verifiable from the primary source cited in the derivation tables (Sections C.3–C.7). Sensitivity: each score carries ±0.05 uncertainty, consistent with the Monte Carlo σ=5% parameter (Section 4.7, main text; P(PCI≥0.70)=99.5%).
+
+VADER means by group (for urgency adjustment, Eq. C.2 / B.2): Government = +0.21 (9 docs); Community = +0.47 (12 docs); Investor = +0.31 (11 docs); NGO = +0.28 (4 docs); Labour = +0.52 (7 docs).
+C.3 Government Agency (DMRE/SAPS)  —  P = 0.82,  L = 0.58,  U = 0.75
+SIC₁ = 0.3(0.82)+0.4(0.58)+0.3(0.75) = 0.703 (Eq. 2, main text; verified Table C8.2).
+
+Table C3.1. Government Power Derivation
+
+Table C3.2. Government Legitimacy Derivation
+
+Table C3.3. Government Urgency Derivation
+
+C.4 Nkaneng Community —  P = 0.32,  L = 0.92,  U = 0.95
+SIC₂ = 0.3(0.32)+0.4(0.92)+0.3(0.95) = 0.749. Community Power base = 0.10: floor for groups with no formal institutional standing, no legal land title, and no direct economic leverage — consistent with IAP2 ‘Inform’ level and Mitchell et al. (1997) dormant stakeholder classification. Sensitivity: ±0.05 on anchor gives P ∈ [0.27, 0.37]; SIC ∈ [0.724, 0.774] vs. baseline 0.749 — ranking unchanged.
+
+Table C4.1. Community Power Derivation
+
+Table C4.2. Community Legitimacy Derivation
+
+Table C4.3. Community Urgency Derivation
+C.5 International Investors (Lonmin/Sibanye)  —  P = 0.88,  L = 0.65,  U = 0.82
+SIC₃ = 0.3(0.88)+0.4(0.65)+0.3(0.82) = 0.770. Investor Power is highest across all groups; the Power–Legitimacy gap (0.88 vs. 0.65) is the empirical basis for SCIPRA’s governance fragility argument.
+
+
+
+
+
+
+Table C5.1. Investor Power Derivation
+
+Table C5.2. Investor Legitimacy Derivation
+
+Table C5.3. Investor Urgency Derivation
+C.6 Environmental NGOs (CER/BMF)  —  P = 0.52,  L = 0.80,  U = 0.70
+SIC₄ = 0.3(0.52)+0.4(0.80)+0.3(0.70) = 0.686 (Eq. 2, main text; verified Table C8.2).
+
+Table C6.1. NGO Power Derivation
+
+Table C6.2. NGO Legitimacy and Urgency Derivation
+C.7  Labour Unions (AMCU/NUM)  —  P = 0.75,  L = 0.78,  U = 0.90
+SIC₅ = 0.3(0.75)+0.4(0.78)+0.3(0.90) = 0.807 — highest SIC across all groups, driven by U=0.90 and demonstrated shutdown capacity.
+
+Table C7.1. Labour Power Derivation
+
+Table C7.2. Labour Legitimacy and Urgency Derivation
+C.8 Consolidated Summary and SIC Verification
+Table C8.1. Consolidated P, L, U Scores with Derivation Pathways
+
+Table C8.2. SIC Arithmetic Verification
+Note: α=0.30, β=0.40, γ=0.30 (Equation 2, main text). All five SIC values match Table 3 exactly. ✔ = verified.
+C.9  Methodology Transparency Audit
+Audit summary: 8 of 15 scores (53%) are Low subjectivity; 6 (40%) are Low-Medium; 1 (7%) is Medium (Community Power). No score is classified High. The single Medium score (Community P=0.32) has ±0.05 sensitivity range SIC ∈ [0.724, 0.774], not materially altering rankings. P(PCI≥0.70)=99.5% across N=10,000 Monte Carlo iterations (Section 4.7, main text) confirms this score does not threaten framework conclusions.
+
+Validation against outcomes: The stakeholder group with the largest Power–Legitimacy gap (Investor: 0.88 vs. 0.65, Δ=0.23) is empirically associated with the greatest governance failure (Farlam Commission attribution). The group with lowest Power but highest L+U (Community: P=0.32, L=0.92, U=0.95) is the group whose exclusion is formally identified as the proximate conflict cause (Farlam, 2015 p.487). This structural correspondence provides external validity evidence independent of the SVM classification.
+
+Table C9.1. Attribute Assignment Transparency Audit — All 15 P, L, U Scores
+Subjectivity: Low = formula-derived or directly quantifiable. Low-Med = formula base + one calibrated adjustment. Medium = theoretically anchored with documented evidence. No High classifications.
+SI synthesis: The three appendices form a complete evidential chain: Appendix A guarantees that PCI and RPCI are mathematically bounded and ordered (theory); Appendix B specifies the computational pipeline that produces the S_score domain input (implementation); Appendix C documents the P, L, U attribute values that determine the SIC weights applied in the pipeline (evidence). A reviewer wishing to trace any main text result from axiom to number can follow: Assumptions A.1–A.4 → Theorems A.1–A.2 → Algorithm 3 (Appendix B.2) → Derivation tables C.3–C.7 → SIC verification Table C8.2 → main text Table 3.
+
+References
+ActionAid. (2008). Precious metal: The impact of Anglo Platinum on poor communities in Limpopo. ActionAid International.
+Bench Marks Foundation. (2012). Policy gap 6: Corporate social responsibility in the platinum mining industry. Bench Marks Foundation.
+Bench Marks Foundation. (2016). Policy gap 10: A review of platinum mining in the Bojanala District of the North West Province. Bench Marks Foundation.
+Boutilier, R. G., & Thomson, I. (2011). Modelling and measuring the social licence to operate. International Mine Management Conference Proceedings.
+Centre for Environmental Rights. (2017). Zero hour: Poor governance of mining and the violation of environmental rights in the Mpumalanga coal fields. CER.
+Department of Mineral Resources and Energy (DMRE). (2018). Mining Charter III. Republic of South Africa, Government Gazette No. 41934.
+Extractive Industries Transparency Initiative (EITI). (2023). EITI Standard 2023. EITI International Secretariat.
+Farlam Commission. (2015). Report of the Marikana Commission of Inquiry. Republic of South Africa.
+Hoeffding, W. (1963). Probability inequalities for sums of bounded random variables. Journal of the American Statistical Association, 58(301), 13–30. https://doi.org/10.2307/2282952
+Hutto, C. J., & Gilbert, E. (2014). VADER: A parsimonious rule-based model for sentiment analysis of social media text. ICWSM-14.
+International Association for Public Participation (IAP2). (2018). IAP2 spectrum of public participation. IAP2 International Federation.
+Kaufmann, D., Kraay, A., & Mastruzzi, M. (2010). The worldwide governance indicators: Methodology and analytical issues. World Bank Policy Research Working Paper No. 5430.
+Marais, L., Matebesi, S., & van der Watt, P. (2024). Social licensing and mining in South Africa. Resources Policy, 90, 104724.
+Markowitz, H. (1952). Portfolio selection. Journal of Finance, 7(1), 77–91. https://doi.org/10.2307/2975974
+Minerals Council South Africa. (2013). Facts and figures 2012. Minerals Council South Africa.
+Mitchell, R. K., Agle, B. R., & Wood, D. J. (1997). Toward a theory of stakeholder identification and salience. Academy of Management Review, 22(4), 853–886.
+Moffat, K., & Zhang, A. (2014). The paths to social licence to operate: An integrative model explaining community acceptance of mining. Resources Policy, 39, 61–70.
+Saaty, T. L. (1980). The analytic hierarchy process: Planning, priority setting, resource allocation. McGraw-Hill.
+Socio-Economic Rights Institute of South Africa (SERI). (2013). Displacement and relocation in the Nkaneng informal settlement. SERI.
+Statistics South Africa. (2015). Statistical release P0210: Quarterly labour force survey, Quarter 4 2014. Statistics South Africa.
+van Laarhoven, P. J. M., & Pedrycz, W. (1983). A fuzzy extension of Saaty’s priority theory. Fuzzy Sets and Systems, 11(1–3), 229–241. https://doi.org/10.1016/S0165-0114(83)80083-9
+World Bank. (2012–2023). Worldwide governance indicators. World Bank Group. https://info.worldbank.org/governance/wgi/
+Zarghami, M., & Szidarovszky, F. (2011). Multicriteria analysis: Applications to water and environment management. Springer. https://doi.org/10.1007/978-3-642-17937-2

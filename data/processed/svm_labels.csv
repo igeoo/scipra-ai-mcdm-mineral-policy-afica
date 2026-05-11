@@ -1,0 +1,14 @@
+doc_id,filename,true_label,predicted_label,prob_resistant,prob_pro_integration
+DOC-001,Bench_Marks_PG10.pdf,1,1,0.1528,0.8472
+DOC-002,Bench_Marks_PG6.pdf,1,1,0.1601,0.8399
+DOC-003,CER_Zero_Hour.pdf,0,0,0.7746,0.2254
+DOC-004,News_Article_1.txt,0,0,0.5494,0.4506
+DOC-005,News_Article_10.txt,0,1,0.4817,0.5183
+DOC-006,News_Article_2.txt,1,0,0.5087,0.4913
+DOC-007,News_Article_3.txt,0,1,0.4652,0.5348
+DOC-008,News_Article_4.txt,0,1,0.4944,0.5056
+DOC-009,News_Article_5.txt,1,1,0.3826,0.6174
+DOC-010,News_Article_6.txt,0,0,0.5666,0.4334
+DOC-011,News_Article_7.txt,0,1,0.3793,0.6207
+DOC-012,News_Article_8.txt,1,1,0.446,0.554
+DOC-013,News_Article_9.txt,1,1,0.4152,0.5848

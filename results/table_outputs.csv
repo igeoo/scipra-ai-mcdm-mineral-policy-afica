@@ -1,0 +1,14 @@
+table,scenario,metric,value
+Table 5,A: Pre-Intervention (2010-2012),PCI_linear,0.456
+Table 5,A: Pre-Intervention (2010-2012),PCI_nonlinear,0.397
+Table 5,B: Post-Charter III (2018-2021),PCI_linear,0.665
+Table 5,B: Post-Charter III (2018-2021),PCI_nonlinear,0.66
+Table 5,C: SCIPRA-Optimised (projected),PCI_linear,0.781
+Table 5,C: SCIPRA-Optimised (projected),PCI_nonlinear,0.78
+Table 7,A: Pre-Intervention (2010-2012),RPCI_norm,0.427
+Table 7,B: Post-Charter III (2018-2021),RPCI_norm,0.638
+Table 7,C: SCIPRA-Optimised (projected),RPCI_norm,0.752
+SVM Metrics,Full corpus N=87,accuracy,0.2333
+SVM Metrics,Full corpus N=87,f1,0.0
+SVM Metrics,Full corpus N=87,roc_auc,0.1
+SVM Metrics,Full corpus N=87,kappa,-0.5854

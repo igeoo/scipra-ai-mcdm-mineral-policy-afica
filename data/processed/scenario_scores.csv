@@ -1,0 +1,4 @@
+scenario,I_investment,R_regulatory,S_stakeholder,PCI_linear,PCI_nonlinear,RPCI_raw,RPCI_norm
+A: Pre-Intervention (2010-2012),0.82,0.48,0.12,0.456,0.3526,0.4278,0.4074
+B: Post-Charter III (2018-2021),0.7,0.75,0.55,0.665,0.659,0.6563,0.6251
+C: SCIPRA-Optimised (projected),0.75,0.8,0.79,0.7815,0.7812,0.7794,0.7423

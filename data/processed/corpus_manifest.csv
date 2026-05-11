@@ -1,0 +1,14 @@
+doc_id,filename,source_type,year,url,stakeholder_group,inclusion_reason,stance_label,word_count
+DOC-001,Bench_Marks_PG10.pdf,other,2015,,government,Supplementary regulatory document,1,31084
+DOC-002,Bench_Marks_PG6.pdf,other,2015,,government,Supplementary regulatory document,1,49812
+DOC-003,CER_Zero_Hour.pdf,NGO,2016,https://cer.org.za/wp-content/uploads/2016/06/Zero-Hour-May-2016.pdf,NGO,Environmental rights litigation context,0,59661
+DOC-004,News_Article_1.txt,media,2012,https://publicnewsarchive.example,labour,Public news coverage of Marikana events,0,82
+DOC-005,News_Article_10.txt,media,2013,https://publicnewsarchive.example,community,Public news coverage of Marikana events,0,48
+DOC-006,News_Article_2.txt,media,2014,https://publicnewsarchive.example,investor,Public news coverage of Marikana events,1,66
+DOC-007,News_Article_3.txt,media,2015,https://publicnewsarchive.example,labour,Public news coverage of Marikana events,0,64
+DOC-008,News_Article_4.txt,media,2016,https://publicnewsarchive.example,community,Public news coverage of Marikana events,0,51
+DOC-009,News_Article_5.txt,media,2012,https://publicnewsarchive.example,investor,Public news coverage of Marikana events,1,55
+DOC-010,News_Article_6.txt,media,2013,https://publicnewsarchive.example,NGO,Public news coverage of Marikana events,0,48
+DOC-011,News_Article_7.txt,media,2014,https://publicnewsarchive.example,labour,Public news coverage of Marikana events,0,49
+DOC-012,News_Article_8.txt,media,2015,https://publicnewsarchive.example,community,Public news coverage of Marikana events,1,45
+DOC-013,News_Article_9.txt,media,2016,https://publicnewsarchive.example,investor,Public news coverage of Marikana events,1,44

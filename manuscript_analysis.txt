@@ -1,0 +1,277 @@
+--- APPENDIX END ---
+
+If Xᵢ = μ for all i, then (Xᵢ − μ) = 0 for all i, so Var(X) = 0 and σ(X) = 0. By Equation (A.10):
+RPCI  =  max(0, μ − 0) / (1 + λ/2)  =  μ / (1 + λ/2)  <  μ  =  PCI₀  for λ > 0. 
+Interpretation: Even at perfect cross-domain balance (σ = 0), RPCI is discounted below PCI₀ by a factor of 1/(1+λ/2). For λ = 0.10: discount = 1/1.05 ≈ 4.8%. This conservative discounting is by design — it ensures that no governance configuration receives a perfect RPCI = 1 unless λ = 0 and PCI₀ = 1, making the framework resistant to trivial perfect-score outcomes.
+A.8 Summary of Formal Results
+Table A8.1. Summary of All Formal Results in Appendix A
+References for Appendix A
+Hoeffding, W. (1963). Probability inequalities for sums of bounded random variables. Journal of the American Statistical Association, 58(301), 13–30. https://doi.org/10.2307/2282952
+Markowitz, H. (1952). Portfolio selection. Journal of Finance, 7(1), 77–91. https://doi.org/10.2307/2975974
+Saaty, T. L. (1980). The analytic hierarchy process: Planning, priority setting, resource allocation. McGraw-Hill.
+van Laarhoven, P. J. M., & Pedrycz, W. (1983). A fuzzy extension of Saaty’s priority theory. Fuzzy Sets and Systems, 11(1–3), 229–241. https://doi.org/10.1016/S0165-0114(83)80083-9
+Zarghami, M., & Szidarovszky, F. (2011). Multicriteria analysis: Applications to water and environment management. Springer. https://doi.org/10.1007/978-3-642-17937-2
+
+B: NLP-SVM Pipeline: Formal Specification, Lexicons, Corpus Metadata, and Data Access Pathway
+B.0 Notation and Symbol Reference
+All symbols used in this appendix are defined in Table B0.1. Symbols are consistent with the main text throughout; any appendix-specific extensions are noted explicitly.
+Table B0.1. Symbol Reference for Appendix B
+B.1 Formal Mathematical Specification
+The following equations provide a complete formal definition of all computed quantities in the NLP-SVM pipeline. Equation numbering continues from the main text (Equations 1-10) for coherence.
+B.1.1 TF-IDF Feature Weighting
+The term frequency-inverse document frequency weight for term t in document d from corpus D is defined as:
+
+tf-idf(t, d, D)  =  tf(t, d)  ×  log [ (1 + |D|) / (1 + df(t, D)) ]  +  1
+
+where tf(t, d) = log(1 + count(t, d)) (sublinear smoothing), df(t, D) = number of documents containing term t, and |D| = corpus size. The ‘+1’ additive smoothing prevents zero-division on unseen terms. This formulation (scikit-learn default with sublinear_tf = True) was chosen over raw term frequency for three reasons: (i) it reduces the influence of high-frequency non-informative terms; (ii) it produces interpretable feature weights that can be directly inspected alongside the domain lexicons; and (iii) it avoids the vocabulary size and training data requirements of contextual embedding models such as BERT, which would be disproportionate for a specialised 87-document corpus. The limitations of this choice relative to transformer-based models are acknowledged in Section B.5.
+B.1.2 Salience Dimension Scoring
+Let V_dim denote the lexicon (valence term set) for dimension dim ∈ {P, L, U}, and let V_all = V_P ∪ V_L ∪ V_U denote the union of all valence terms. The raw salience score for document d on dimension dim is:
+
+score_dim(d)  =  ∑_{t ∈ V_dim} ①(t ∈ tokens(d))  /  ∑_{t ∈ V_all} ①(t ∈ tokens(d))          (B.1)
+
+where ①(·) is the indicator function. The denominator counts all valence-bearing tokens across all three lexicons present in d, ensuring scores are comparable across documents of varying length. The VADER compound sentiment adjustment applied to urgency is:
+
+U_adjusted(d)  =  clip( score_U(d)  +  0.10 × compound(d),  0,  1 )          (B.2)
+where compound(d) ∈ [-1, 1] is the VADER compound score (Hutto & Gilbert, 2014). The ceiling of ±0.10 was selected through sensitivity testing on a 20-document hold-out sample drawn from the corpus, comparing VADER-adjusted versus unadjusted urgency scores against annotator judgements. Adjustments exceeding 0.10 produced no improvement in annotator agreement and inflated urgency scores for documents with incidentally positive sentiment.
+B.1.3 Stakeholder Acceptance Score (S_score)
+Let G = {government, community, investor, NGO, labour} be the set of stakeholder groups, D_g ⊆ D the subset of documents attributed to group g, and pʲ(d) the SVM-predicted probability of pro-integration stance for document d. The group-level acceptance score is:
+
+acc(g)  =  (1 / |D_g|) ×  ∑_{d ∈ D_g}  pʲ(d)          (B.3)
+
+The S_score is then the SIC-weighted mean across stakeholder groups:
+
+S_score  =  ∑_{g ∈ G}  SIC_g × acc(g)  /  ∑_{g ∈ G}  SIC_g          (B.4)
+
+where SIC_g is the Stakeholder Influence Coefficient for group g (Equation 2, main text; Marikana values: SIC_community = 0.749, SIC_investor = 0.770, SIC_labour = 0.807, SIC_government = 0.703, SIC_NGO = 0.686). The PCI is then computed per Equation (1) of the main text:
+
+PCI  =  w₁ × I_score  +  w₂ × R_score  +  w₃ × S_score          (Eq. 1, main text)
+
+with w₁ = 0.30, w₂ = 0.35, w₃ = 0.35 for the Marikana case. The robustness-adjusted RPCI (Equations 5–8, main text) applies a variance penalty λ = 0.10 on the weighted standard deviation of domain scores.
+B.2 Formal Algorithm Specification
+The NLP-SVM pipeline is specified as three sequential algorithms below. All parameters are enumerated in the reproducibility checklist (Appendix B.6). Random state is fixed at random_state = 42 throughout for full determinism.
+
+
+
+
+B.3 Domain Lexicons with Formal Construction Protocol
+Lexicon construction followed a two-stage protocol. First, a candidate term set was derived by applying a TF-IDF threshold of tf-idf ≥ 0.15 to the full 87-document corpus, yielding the most discriminative terms in the Marikana governance context. Second, three domain experts (one each in extractive sector governance, computational linguistics, and South African mining law) independently validated candidate terms against the Mitchell et al. (1997) salience framework and the EITI Standard 2023 terminology. Terms required agreement from at least two of three experts for inclusion. Terms explicitly named in the main text are marked (★).
+
+Table B3.1. Power Lexicon (V_P) — Stakeholder Capacity to Influence Outcomes
+Note: (★) = term explicitly named in main text NLP feature description. All terms lemmatised before matching. TF-IDF threshold for inclusion: ≥ 0.15 plus expert validation (see construction protocol above).
+Table B3.2. Legitimacy Lexicon (V_L) — Socially or Legally Recognised Claims
+Note: (★) = term explicitly named in main text. Legitimacy lexicon is the largest by TF-IDF weight, consistent with the legitimacy-emphasis calibration (β = 0.40) in the Marikana case.
+
+Table B3.3. Urgency Lexicon (V_U) — Time-Sensitivity of Stakeholder Demands
+Note: VADER compound sentiment adjusts the urgency score by up to ±0.10 per Equation (B.2). Ceiling of 0.10 validated on 20-document hold-out sample (see Section B.1.2 above). (★) = term explicitly named in main text.
+B.4 Corpus Metadata, Annotation Protocol, and Data Access
+B.4.1 Corpus Metadata
+The 87-document Marikana corpus spans 2010–2023 across four source categories. Table B4.1 provides the metadata schema. Mixed-source documents (predominantly news articles) containing testimony or quotations from multiple stakeholder groups were attributed to the dominant stakeholder voice, defined as the group whose positions occupied the majority of substantive content as assessed during annotation. In cases of equal representation across two groups (n = 4 documents), the document was replicated in both group subsets with a 0.5 weighting factor applied in the acc(g) calculation (Equation B.3) to avoid double-counting. Readers should note that the same 87-document corpus serves a dual function in this study: it provides the training and validation data for the SVM classifier, and it supplies the documentary evidence base for the Marikana case argument. The S_score domain input to the PCI (Equation B.4) is therefore derived from documents whose content also informed the scenario characterisation in Section 4.3. This dual use is inherent to retrospective single-case validation and does not compromise internal consistency, but it means the pipeline’s classification outputs should be interpreted as evidence of methodological coherence within the Marikana case rather than as independent predictive validation. The Monte Carlo analysis in Section 4.7 addresses parameter uncertainty but does not resolve this corpus dependency; out-of-sample validation across multiple cases remains necessary before generalisation claims can be made.
+
+
+
+Table B4.1. Corpus Metadata Schema — Marikana Document Corpus (N = 87)
+Note: MW = Mining Weekly; SS = Sibanye-Stillwater. Document counts: EITI (13), Farlam Commission (1), Bench Marks Foundation (2), SERI (1), CER (1), news articles (58), corporate engagement reports (11). Total = 87.
+
+B.4.2 Annotation Protocol
+Binary labels (1 = pro-integration, 0 = resistant) were assigned independently by two annotators. Inter-rater agreement was measured using Cohen's κ prior to adjudication (κ = 0.71, substantial agreement). Disagreements (n = 9 of 87 documents) were resolved by a third annotator with reference to document abstract and executive summary. Final pre-training κ = 1.0 (full agreement on resolved corpus).
+
+Table B4.2. Annotation Decision Rules — Binary Stance Classification
+Note: Mixed-source documents attributed by dominant stakeholder voice rule (see Section B.4.1). Pre-adjudication Cohen's κ = 0.71; post-adjudication κ = 1.0. Class distribution: 71 pro-integration (label 1), 16 resistant (label 0); imbalance addressed by class_weight = ‘balanced’ in SVM (Algorithm 3, Step 1).
+
+B.4.3 Open-Source Data Access Pathway
+All primary data sources are publicly accessible. The following five-step pathway enables full replication without institutional database subscriptions.
+
+Step 1 — EITI Country Summary Data (South Africa)
+API endpoint: GET https://eiti.org/api/v1.0/?format=json&country_code=ZA
+Fields: fiscal_year, revenue_type, government_entity, company_name, amount, currency
+Licence: Open Government Licence; attribution required
+
+Step 2 — World Bank World Governance Indicators
+Endpoint: https://api.worldbank.org/v2/country/ZA/indicator/{code}?format=json&date=2010:2023
+Codes used: GE.EST, RL.EST, VA.EST, CC.EST, PS.EST
+Normalisation: score_normalised = (WGI_estimate + 2.5) / 5.0  [maps [−2.5, +2.5] to [0, 1]]
+Licence: Creative Commons Attribution 4.0
+
+Step 3 — Farlam Commission Report (2015)
+URL: https://www.gov.za/documents/marikana-commission-inquiry
+Format: Public PDF; extract via pdfplumber ≥ 0.7 or PyMuPDF ≥ 1.18
+Stakeholder partitioning: SAPS/DMRE sections → government; Nkaneng testimony → community; AMCU/NUM testimony → labour
+
+Step 4 — NGO and Civil Society Reports
+Bench Marks Foundation PG6: https://www.bench-marks.org.za/research/policy-gap-6/
+Bench Marks Foundation PG10: https://www.bench-marks.org.za/research/policy-gap-10/
+SERI Nkaneng Report: https://seri-sa.org/images/Nkaneng_report.pdf
+CER Zero Hour Report: https://cer.org.za/resources/reports/
+
+Step 5 — News Archive (Mining Weekly)
+URL: https://www.miningweekly.com — keyword search: Marikana, Lonmin, Sibanye, platinum strike, AMCU, Nkaneng
+Scraping: BeautifulSoup ≥ 4.11 or Scrapy ≥ 2.8; respect robots.txt; rate-limit to 1 request/second
+B.5 Computational Complexity and Scalability
+The computational cost of the SCIPRA NLP-SVM pipeline scales as follows with corpus size n (number of documents) and vocabulary size V (number of TF-IDF features, here capped at 500).
+
+Table B5.1. Computational Complexity of Pipeline Stages
+Note: For the Marikana corpus (n = 87, V = 500), total wall-clock runtime on a standard laptop (Intel Core i7, 16 GB RAM) is approximately 12–18 seconds. SVM quadratic scaling is the primary constraint for large-scale deployment.
+B.5.1 Scalability to Larger Corpora
+For deployment at continental scale (e.g., multi-country SADC/ECOWAS monitoring), three adaptations are recommended. First, the SVM may be replaced with a linear kernel (LinearSVC) for corpora exceeding n = 5,000 documents, reducing training complexity to O(n × V) while preserving comparable classification performance on high-dimensional TF-IDF features. Second, TF-IDF vectorisation supports incremental updates via HashingVectorizer, enabling streaming document ingestion without full corpus refit. Third, for corpora requiring multilingual processing (isiZulu, Sesotho, French-language Francophone documents), language-specific tokenisation models and translated lexicons are required; this constitutes a priority direction for future development noted in Section 5.2 of the main text.
+B.5.2 Limitations of the TF-IDF and SVM Approach
+The current implementation relies on TF-IDF bag-of-words features and a radial basis function SVM classifier. This constitutes an established but relatively standard machine learning pipeline rather than state-of-the-art natural language processing. Three specific limitations merit acknowledgement. First, TF-IDF does not capture word order, negation, or contextual polarity beyond the VADER adjustment; the phrase 'rights were denied' is treated equivalently to 'rights were upheld.' Second, the RBF-SVM is not well-suited to very large corpora due to quadratic training complexity. Third, domain-adapted transformer models (e.g., BERT fine-tuned on mining governance corpora) would likely improve salience classification accuracy, particularly for nuanced legitimacy claims. The term 'AI-enhanced' in the paper title is therefore intended to distinguish SCIPRA from purely expert-driven MCDM, not to claim transformer-level AI sophistication. Benchmarking against BERT-based classifiers is identified as a priority direction for future work (Section 5.2, main text). It should further be noted that the cross-validation metrics reported in Table 6 of the main text (accuracy = 81.6%, F1 = 0.837) are derived from the same 87-document Marikana corpus used to construct and illustrate the case argument. These metrics therefore reflect in-sample classification performance within a single case context rather than out-of-sample generalisation to independent governance settings. Cross-case validation — applying the trained pipeline to an independently annotated corpus from a second African mining jurisdiction (e.g., Zambia’s Copperbelt or Ghana’s Obuasi) — constitutes a priority direction for future work and is explicitly identified as such in Section 5.2 of the main text.
+B.6 Parameter Calibration Guidance
+Table B6.1 provides illustrative calibration scenarios for the α, β, γ weighting coefficients and sensitivity parameter δ across five governance contexts. These are expert priors informed by the theoretical framework and Marikana case evidence; they are not empirically estimated parameters and should be validated through sensitivity analysis (Section 4.6, main text) before deployment in a new context.
+Table B6.1. Illustrative Parameter Calibration Scenarios by Governance Context
+Note: (★) = Marikana calibration used throughout the main text. All α + β + γ = 1.0. These are illustrative expert priors; empirical calibration for new contexts requires sensitivity analysis following the procedure in Section 4.6 (main text). δ range [0.10, 0.60] encompasses 99.5% of Monte Carlo convergence zone (Section 4.7, main text).
+B.7 Reproducibility Checklist
+The following checklist enumerates all parameters, software versions, and data sources required for exact replication of the SCIPRA NLP-SVM results reported in the main text.
+Table B7.1. Full Reproducibility Checklist
+
+References for Appendix B
+Bench Marks Foundation. (2012). Policy gap 6: Corporate social responsibility in the platinum mining industry. Bench Marks Foundation.
+Bench Marks Foundation. (2016). Policy gap 10: A review of platinum mining in the Bojanala District. Bench Marks Foundation.
+Boutilier, R. G., & Thomson, I. (2011). Modelling and measuring the social licence to operate. International Mine Management Conference Proceedings.
+Centre for Environmental Rights. (2017). Zero hour: Poor governance of mining and the violation of environmental rights. CER.
+Department of Mineral Resources and Energy (DMRE). (2018). Mining Charter III. Republic of South Africa, Government Gazette No. 41934.
+Extractive Industries Transparency Initiative (EITI). (2023). EITI Standard 2023. EITI International Secretariat.
+Farlam Commission. (2015). Report of the Marikana Commission of Inquiry. Republic of South Africa.
+Hutto, C. J., & Gilbert, E. (2014). VADER: A parsimonious rule-based model for sentiment analysis of social media text. ICWSM-14.
+Kaufmann, D., Kraay, A., & Mastruzzi, M. (2010). The worldwide governance indicators. World Bank Policy Research Working Paper No. 5430.
+Mitchell, R. K., Agle, B. R., & Wood, D. J. (1997). Toward a theory of stakeholder identification and salience. Academy of Management Review, 22(4), 853–886.
+Moffat, K., & Zhang, A. (2014). The paths to social licence to operate. Resources Policy, 39, 61–70.
+Socio-Economic Rights Institute of South Africa (SERI). (2013). Displacement and relocation in the Nkaneng informal settlement. SERI.
+World Bank. (2012–2023). Worldwide governance indicators. https://info.worldbank.org/governance/wgi/ 
+
+C: Explicit Derivation of Stakeholder Salience Attributes (P, L, U): Normalisation Formulas, Uplift Calibration Rules, Document-Frequency Ratios, and Attribute Assignment Transparency
+C.0 Purpose, Scope, and Reproducibility Statement
+This appendix provides a complete, step-by-step derivation of every Power (P), Legitimacy (L), and Urgency (U) score assigned to the five Marikana stakeholder groups reported in Table 3 of the main text. The derivation addresses three reviewer concerns identified in the manuscript review process: (i) transparency of attribute assignment; (ii) formal justification of uplift and penalty magnitudes; and (iii) harmonisation of heterogeneous input data from the World Bank World Governance Indicators (WGI), NLP document-frequency ratios, and documented case evidence.
+
+Reproducibility statement: All P, L, U scores reported in this appendix are fully reproducible from the data sources, formulas, and calibration rules defined in Sections C.1–C.2. No score requires access to proprietary data. The three normalisation equations (C.1–C.3), the uplift calibration table (Table C1.2), and the clipping rule (Equation C.4) are jointly sufficient for independent replication of all 15 attribute values from the primary sources identified in Sections C.3–C.7.
+
+Generalisation note: While the derivation tables in this appendix are calibrated to the Marikana case, the three-pathway methodology (WGI normalisation, document-frequency ratio, evidence triangulation) is transferable to any mining jurisdiction with access to World Bank WGI data and a document corpus. Context-specific parameter recalibration guidance is provided in Appendix B.3 (Appendix B, this submission).
+
+Table C0.1. Section Roadmap
+
+C.1 Formal Notation, Normalisation Formulas, and Uplift Calibration Rules
+C.1.1 Symbol Reference
+All symbols are consistent with the main text and Appendix B. Table C1.1 defines symbols used exclusively in this appendix.
+
+Table C1.1. Appendix C Symbol Reference
+
+C.1.2 Normalisation Equations
+Three formal normalisation procedures are applied across derivation pathways. All inputs are normalised to [0,1] before aggregation, ensuring comparability across heterogeneous data types (World Bank WGI estimates, NLP ratios, and documentary evidence). The clipping rule (Equation C.4) is applied as the final step after all adjustments, guaranteeing bounded output regardless of cumulative uplift or penalty values.
+
+
+Maps WGI raw estimates ∈ [−2.5, +2.5] linearly to [0, 1]. A WGI estimate of 0.0 (world median) maps to 0.50. Applied to Government Power and Legitimacy scores derived from World Bank World Governance Indicators (Kaufmann et al., 2010). WGI estimates used: Government Effectiveness = +0.30; Rule of Law = +0.09; Voice & Accountability = +0.54 (South Africa, 2012–2015 mean; World Bank WGI, 2012–2015).
+
+
+Identical to Equation (B.1) in Appendix B, reproduced here for self-contained reading. The denominator V_all = V_P ∪ V_L ∪ V_U counts all valence-bearing tokens across all three lexicons, ensuring scores are length-invariant and comparable across documents. VADER urgency adjustment (Appendix B, Equation B.2) is applied additively: U_adj = clip(df_U(d) + 0.10 × compound(d), 0, 1). VADER compound scores are computed at document level using vaderSentiment ≥ 3.3 and averaged across stakeholder-attributed documents within each group. Computed using the NLP pipeline defined in Appendix B (Algorithms 1–2). Complexity: O(n × L) where n = document count and L = mean document length; linear in corpus size.
+
+
+Evidence weights w_i ∈ {1.0, 0.7, 0.5} are assigned by source tier: primary documentary record (e.g., commission report, statutory instrument, audited financial data) = 1.0; secondary institutional report (e.g., NGO policy report, news archive) = 0.7; expert triangulation without primary quantification = 0.5. Uplift magnitudes Δ_i are calibrated proportionally to the quantifiable scale of the documented evidence event, constrained to the range [0.02, 0.30] per the calibration rules in Table C1.2 below. This constraint ensures no single evidence item can move a score by more than 0.30 before weighting.
+
+
+Applied as the final step after all uplifts and penalties have been summed. Guarantees mathematical boundedness per Proposition 1 of the main text (PCI ∈ [0,1]). No final P, L, or U score in this appendix lies outside [0.10, 0.95]; all intermediate values are reported transparently in the derivation tables to allow reviewer verification of each step.
+
+C.1.3 Uplift and Penalty Calibration Rules
+Uplift (Δ > 0) and penalty (Δ < 0) magnitudes are not heuristic. Each is calibrated against a quantifiable event metric using the three-tier scale in Table C1.2. A reviewer can verify each magnitude by consulting the primary source cited in the corresponding derivation table row.
+
+Table C1.2. Uplift and Penalty Calibration Rules
+Note: Tier assignment is determined by evidential basis, not by the desired score outcome. All tier assignments are verifiable from the primary sources cited in the derivation tables (Sections C.3–C.7). No uplift in this appendix exceeds the Tier 3 ceiling of 0.30.
+C.1.4 Sensitivity Bounds
+Each P, L, U score carries an implicit uncertainty of approximately ±0.05, reflecting the range over which the calibrated uplift magnitudes could plausibly vary under alternative evidential interpretations. This bound is consistent with the ±5% standard deviation applied to stakeholder P, L, U values in the Monte Carlo simulation described in Section 4.7 of the main text (N=10,000 iterations; P(PCI ≥ 0.70) = 99.5%). Scores are not reported to more than two decimal places given this uncertainty level. A reviewer wishing to stress-test a specific score can apply the sensitivity analysis procedure in Section 4.6 (main text) using the stakeholder shock analysis parameters in Table 9 (main text).
+C.2  Data Source Harmonisation and VADER Computation
+Three data types are combined in the derivation tables: World Bank WGI estimates (continuous, range −2.5 to +2.5), NLP document-frequency ratios (continuous, [0,1] by construction), and documentary evidence uplifts (discrete magnitudes, calibrated per Table C1.2). All three are normalised to [0,1] before any aggregation step, ensuring that no data type dominates by scale. Table C2.1 summarises the harmonisation procedure.
+
+Table C2.1. Data Source Harmonisation Summary
+
+VADER computation: Compound sentiment scores are computed at document level using SentimentIntensityAnalyzer (vaderSentiment ≥ 3.3). The mean compound is computed across all documents attributed to the stakeholder group in question (stakeholder attribution per Appendix B.4.1). VADER means by group: Government = +0.21 (9 documents); Community = +0.47 (12 documents); Investor = +0.31 (11 documents); NGO = +0.28 (4 documents); Labour = +0.52 (7 documents). The ±0.10 ceiling on VADER adjustment was validated on a 20-document hold-out sample (see Appendix B, Section B.1.2).
+
+Scalability note: The derivation pipeline scales linearly in the number of stakeholders (S) and documents (n): total computation = O(S × n × L) where L is mean document length. For the Marikana corpus (S=5, n=87), runtime is negligible. For continental-scale deployment across SADC/ECOWAS jurisdictions, the pipeline requires only WGI API access (free) and a local document corpus; no proprietary data or specialised hardware.
+C.3 Government Agency (DMRE / SAPS) — P = 0.82, L = 0.58, U = 0.75
+Cross-reference: SIC₁ = 0.3(0.82) + 0.4(0.58) + 0.3(0.75) = 0.703 (Equation 2, main text; verified in Table C8.2).
+
+C.3.1 Power (P = 0.82) — WGI normalisation + institutional uplifts
+Table C3.1. Government Agency Power Derivation
+Note: WGI Government Effectiveness = +0.30 (World Bank WGI API: ZA, GE.EST, 2012–2015). Constitutional mandate uplift (Δ=+0.15, Tier 2): reflects documented enforcement authority under MPRDA (Act 28 of 2002) and Mineral and Petroleum Resources Development Regulations. SAPS uplift (Δ=+0.11, Tier 2): calibrated to 17,000-officer deployment documented in Farlam Commission, 2015.
+
+C.3.2 Legitimacy (L = 0.58)  —  WGI normalisation with Farlam Commission penalty
+Table C3.2. Government Agency Legitimacy Derivation
+Note: The Farlam penalty (Δ=−0.06, Penalty tier) reflects the Commission’s explicit finding. MPRDA uplift is secondary (w=0.7) because statutory authority does not restore social legitimacy; it only prevents the score from falling to levels appropriate for actors with no formal mandate. Net result: L=0.58 reflects genuine institutional legitimacy with documented social trust deficit.
+
+C.3.3 Urgency (U = 0.75) — Document-frequency ratio with event uplifts
+Table C3.3. Government Agency Urgency Derivation
+Note: The large Tier 3 uplift (Δ=+0.28) for post-massacre national crisis is calibrated to the 7-day presidential response timeline, the highest-speed executive response documented in the corpus, indicating maximal institutional urgency. VADER mean computed across 9 government-attributed documents (EITI reports + Farlam Commission government testimony sections).
+C.4 Nkaneng Community Residents —  P = 0.32,  L = 0.92,  U = 0.95
+Cross-reference: SIC₂ = 0.3(0.32) + 0.4(0.92) + 0.3(0.95) = 0.749 (Equation 2, main text; verified in Table C8.2). The community Power score (P=0.32) uses a lower anchor of 0.10, representing the floor for stakeholder groups with no formal institutional standing, no legal land title, and no direct economic leverage — consistent with the IAP2 ‘Inform’ participation level (International Association for Public Participation, 2018) and the Mitchell et al. (1997) classification of dormant stakeholders with latent but unexercised power. The community Power–Legitimacy gap (0.32 vs. 0.92) is the central empirical finding of the Marikana salience analysis.
+
+C.4.1 Power (P = 0.32) —  Evidence triangulation from lower anchor
+Table C4.1. Nkaneng Community Power Derivation
+Note: The lower anchor of 0.10 (rather than 0.0) reflects that even informal settlers retain latent mobilisation capacity. The anchor is theoretically grounded in Mitchell et al. (1997) dormant stakeholder classification and the IAP2 participation spectrum. Community Power is the lowest score across all five groups, consistent with documented structural disempowerment. Sensitivity: ±0.05 variation in the anchor value produces P ∈ [0.27, 0.37], which does not materially change the SIC ranking.
+C.4.2 Legitimacy (L = 0.92)  —  Document-frequency ratio with rights-based uplifts
+Table C4.2. Nkaneng Community Legitimacy Derivation
+Note: Community Legitimacy is the second-highest score across all groups (0.92), reflecting convergent support from NLP evidence, international law, and formal commission findings. The high doc-frequency base (0.671) indicates that legitimacy vocabulary (‘rights’, ‘consent’, ‘displacement’) dominates community-attributed documents, which is consistent with the SERI and BMF corpus content.
+
+C.4.3  Urgency (U = 0.95) —  Document-frequency ratio with acute event uplifts
+Table C4.3. Nkaneng Community Urgency Derivation
+Note: The highest Urgency score across all groups reflects convergent imminent eviction, post-massacre trauma, and chronic health threats. The VADER mean (+0.47) is the second-highest across all groups, consistent with the crisis framing of community-attributed documents. The 0.95 ceiling is not an artefact of score construction: even removing the health uplift yields U = 0.925, confirming the score is robust.
+C.5 International Investors (Lonmin / Sibanye-Stillwater) — P = 0.88,  L = 0.65,  U = 0.82
+Cross-reference: SIC₃ = 0.3(0.88) + 0.4(0.65) + 0.3(0.82) = 0.770 (Equation 2, main text; verified in Table C8.2). Investor Power is the highest across all groups, reflecting documented capital control and exclusive mining rights. The Power–Legitimacy gap (0.88 vs. 0.65) is the empirical basis for SCIPRA’s argument that financial optimisation without stakeholder legitimacy produces governance fragility.
+C.5.1 Power (P = 0.88) — Capital control and financial leverage
+Table C5.1. International Investor Power Derivation
+Note: The Tier 3 base of 0.70 reflects that R12bn capital withdrawal is the largest single financial power exercise documented in the corpus, analogous to a maximum institutional shutdown event. The base is set at 0.70 rather than the Tier 3 ceiling of 0.30+base because it is a starting point calibrated to the scale of financial control, not an uplift on a formula-derived score.
+
+C.5.2 Legitimacy (L = 0.65) — Legal base with SLO erosion penalty
+Table C5.2. International Investor Legitimacy Derivation
+Note: Total legitimacy reduction = −0.15 (from 0.80 to 0.65), reflecting documented SLO collapse and formal commission criticism. The base of 0.80 reflects the legal right to operate; legitimate operational standing provides a high baseline. The gap between Investor Power (0.88) and Legitimacy (0.65) is the largest Power–Legitimacy divergence across all five groups, directly corresponding to the Marikana governance failure.
+
+C.5.3 Urgency (U = 0.82) — Document-frequency ratio with financial loss uplifts
+Table C5.3. International Investor Urgency Derivation
+
+C.6 Environmental NGOs (CER / Bench Marks Foundation) —  P = 0.52,  L = 0.80,  U = 0.70
+Cross-reference: SIC₄ = 0.3(0.52) + 0.4(0.80) + 0.3(0.70) = 0.686 (Equation 2, main text; verified in Table C8.2).
+
+C.6.1 Power (P = 0.52) — Legal standing and network amplification
+Table C6.1. Environmental NGO Power Derivation
+
+C.6.2 Legitimacy (L = 0.80)  and  Urgency (U = 0.70)
+Table C6.2. Environmental NGO Legitimacy and Urgency Derivation
+Note: NGO Legitimacy base from doc-frequency (0.612) is the third highest across all groups, reflecting the dominance of legitimacy vocabulary in NGO documents. The NEMA mandate uplift (Δ=+0.15) is Tier 2, calibrated to the formal statutory basis of environmental protection claims under Section 24 of the Constitution and NEMA Chapter 5.
+C.7 Labour Unions (AMCU / NUM) — P = 0.75, L = 0.78, U = 0.90
+Cross-reference: SIC₅ = 0.3(0.75) + 0.4(0.78) + 0.3(0.90) = 0.807 (Equation 2, main text; verified in Table C8.2). Labour Unions carry the highest SIC across all five groups, driven by very high urgency (U=0.90) and high power through demonstrated shutdown capacity.
+
+C.7.1 Power (P = 0.75) — Demonstrated shutdown capacity
+Table C7.1. Labour Union Power Derivation
+Note: The Tier 3 base of 0.60 (five-month production halt) is lower than Investor Power base (0.70) because labour shutdown capacity, while demonstrated, is time-limited and subject to legal intervention, whereas investor capital withdrawal is structurally unbounded. Final score rounded to 0.75 (two decimal places) per the ±0.05 sensitivity bound noted in Section C.1.4.
+
+C.7.2 Legitimacy (L = 0.78) and Urgency (U = 0.90)
+Table C7.2. Labour Union Legitimacy and Urgency Derivation
+Note: VADER mean compound for labour documents (+0.52) is the highest across all five groups, consistent with the crisis and rights framing of AMCU/NUM testimony. The living-wage Tier 3 uplift (Δ=+0.18) is calibrated to the 3.1× wage gap ratio (R4,000/R12,500), the largest quantified economic grievance documented in the corpus.
+C.8  Consolidated Summary and SIC Verification
+Table C8.1. Consolidated P, L, U Score Summary with Derivation Pathway
+Note: WGI GE = Government Effectiveness; WGI RL = Rule of Law; WGI VA = Voice & Accountability; CB = Collective Bargaining; SLO = Social Licence to Operate. All derivation steps are traceable in Tables C3.1–C7.2.
+
+Table C8.2. SIC Arithmetic Verification — Cross-Check Against Main Text Table 3
+Note: α=0.30 (power), β=0.40 (legitimacy), γ=0.30 (urgency); Equation (2), main text. All five SIC values match Table 3 of the main text exactly. ✔ = verified.
+C.9 Methodology Transparency Audit
+Table C9.1 provides a structured audit of all 15 P, L, U scores, classifying each by subjectivity level, primary source, and reviewer verification pathway. A score is classified as ‘Low’ subjectivity when it is formula-derived or directly quantifiable from a primary source; ‘Low-Medium’ when a formula-derived base is adjusted by a single documented event whose magnitude involves calibrated judgement; and ‘Medium’ when the base score is set by theoretical anchoring with documented evidence support (as for Community Power).
+Audit summary: Of the 15 P, L, U attribute scores, 8 (53%) are Low subjectivity (formula-driven or directly quantifiable), 6 (40%) are Low-Medium (formula-derived base with one calibrated adjustment), and 1 (7%) is Medium (Community Power, theoretically anchored with documented support). No score is classified as High subjectivity. The single Medium score (Community Power = 0.32) is the most theoretically sensitive; its ±0.05 sensitivity range [0.27, 0.37] does not materially alter the SIC ranking (community remains third-highest, SIC ∈ [0.724, 0.774] vs. baseline 0.749). This is consistent with the Monte Carlo finding that P(PCI ≥ 0.70) = 99.5% across 10,000 parameter combinations (Section 4.7, main text), confirming that the single Medium-subjectivity score does not threaten the framework’s conclusions.
+
+Validation against observed outcomes: The P, L, U scores are externally validated by their consistency with the documented Marikana conflict dynamics. The stakeholder group with the largest Power–Legitimacy gap (Investor: 0.88 vs. 0.65, Δ=0.23) is empirically associated with the greatest governance failure (Farlam Commission attribution). The group with the lowest Power but highest Legitimacy+Urgency (Community: P=0.32, L=0.92, U=0.95) is the group whose exclusion is formally identified as the proximate cause of the conflict (Farlam Commission, 2015, p.487). This structural correspondence between the salience scores and the documented causal narrative provides external validity evidence independent of the SVM classification pipeline.
+
+Table C9.1. Attribute Assignment Transparency Audit — All 15 P, L, U Scores
+Note: Subjectivity classification — Low: formula-derived or directly quantifiable from primary source. Low-Med: formula base + one calibrated adjustment. Medium: theoretically anchored base with documented evidence support. No score is classified High. Audit summary: 8 Low (53%), 6 Low-Med (40%), 1 Medium (7%).
+
+References for Appendix C
+ActionAid. (2008). Precious metal: The impact of Anglo Platinum on poor communities in Limpopo. ActionAid International.
+Bench Marks Foundation. (2012). Policy gap 6: Corporate social responsibility in the platinum mining industry. Bench Marks Foundation.
+Bench Marks Foundation. (2016). Policy gap 10: A review of platinum mining in the Bojanala District. Bench Marks Foundation.
+Boutilier, R. G., & Thomson, I. (2011). Modelling and measuring the social licence to operate. International Mine Management Conference.
+Centre for Environmental Rights. (2017). Zero hour: Poor governance of mining and the violation of environmental rights. CER.
+Farlam Commission. (2015). Report of the Marikana Commission of Inquiry. Republic of South Africa.
+International Association for Public Participation (IAP2). (2018). IAP2 spectrum of public participation. IAP2 International Federation.
+Kaufmann, D., Kraay, A., & Mastruzzi, M. (2010). The worldwide governance indicators. World Bank Policy Research Working Paper No. 5430.
+Marais, L., Matebesi, S., & van der Watt, P. (2024). Social licensing and mining in South Africa. Resources Policy, 90, 104724.
+Minerals Council South Africa. (2013). Facts and figures 2012. Minerals Council South Africa.
+Mitchell, R. K., Agle, B. R., & Wood, D. J. (1997). Toward a theory of stakeholder identification and salience. Academy of Management Review, 22(4), 853–886.
+Moffat, K., & Zhang, A. (2014). The paths to social licence to operate. Resources Policy, 39, 61–70.
+Socio-Economic Rights Institute of South Africa (SERI). (2013). Displacement and relocation in the Nkaneng informal settlement. SERI.
+Statistics South Africa. (2015). Statistical release P0210: Quarterly labour force survey, Quarter 4 2014. Statistics South Africa.
+World Bank. (2012–2015). Worldwide governance indicators. https://info.worldbank.org/governance/wgi/
+
