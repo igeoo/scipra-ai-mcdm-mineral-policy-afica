@@ -9,7 +9,7 @@ authors:
   - family-names: "Olanrewaju"
     given-names: "Oludolapo A."
 year: 2026
-version: "1.0.0"
+version: "1.0.1"
 doi: "10.5281/zenodo.20068410"
 repository-code: "https://github.com/igeoo/scipra-ai-mcdm-mineral-policy-africa"
 abstract: "Reproducibility package for an AI-enhanced MCDM framework for mineral resource policy convergence in Africa."
